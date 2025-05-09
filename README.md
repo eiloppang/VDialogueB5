@@ -8,4 +8,4 @@
 pip install -r requirements.txt
 ```
 
-![자동 대사 생성의 전체적 구조](.img/구조1.png)
+![자동 대사 생성의 전체적 구조](VDialogueB5/img/구조1.png)
