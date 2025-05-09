@@ -4,6 +4,7 @@
 
 * 필요 조건 - 로컬 환경의 Llama3를 설치하셔야 합니다.
 * requirments.txt 설치 후 사용해 주세요.
+
 '''
 pip install -r requirements.txt
 '''
