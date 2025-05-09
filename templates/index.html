@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>대사 생성기</title>
+    <style>
+        :root {
+            --bg-color: #f5f5f5;
+            --container-bg: white;
+            --text-color: #333;
+            --border-color: #ddd;
+            --button-bg: #4CAF50;
+            --button-hover: #45a049;
+            --result-bg: #f9f9f9;
+            --history-bg: #f0f0f0;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #1a1a1a;
+            --container-bg: #2d2d2d;
+            --text-color: #f0f0f0;
+            --border-color: #444;
+            --button-bg: #2d5a2d;
+            --button-hover: #3d6a3d;
+            --result-bg: #333;
+            --history-bg: #2a2a2a;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .container {
+            background-color: var(--container-bg);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: background-color 0.3s;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .theme-switch {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--button-bg);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .theme-switch:hover {
+            background: var(--button-hover);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            resize: vertical;
+            min-height: 100px;
+            background-color: var(--container-bg);
+            color: var(--text-color);
+        }
+
+        button {
+            background-color: var(--button-bg);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        button:hover {
+            background-color: var(--button-hover);
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: var(--result-bg);
+            border-radius: 5px;
+            border-left: 4px solid var(--button-bg);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .error {
+            color: #ff4444;
+            margin-top: 10px;
+        }
+
+        .history {
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: var(--history-bg);
+            border-radius: 5px;
+            border-left: 4px solid var(--button-bg);
+        }
+
+        .history-item p {
+            margin: 5px 0;
+        }
+
+        .clear-history {
+            background-color: #ff4444;
+        }
+
+        .clear-history:hover {
+            background-color: #cc0000;
+        }
+
+        .download-csv {
+            background-color: #2196F3;
+            margin-left: 10px;
+        }
+
+        .download-csv:hover {
+            background-color: #1976D2;
+        }
+
+        .history-buttons {
+            display: flex;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-switch" onclick="toggleTheme()">🌓</button>
+    <div class="container">
+        <h1>대사 생성기</h1>
+        <div class="input-group">
+            <textarea id="inputText" placeholder="대사를 입력하세요..."></textarea>
+        </div>
+        <button onclick="generateDialogue()">대사 생성</button>
+        <div id="loading" class="loading">생성 중...</div>
+        <div id="result" class="result"></div>
+        <div id="error" class="error"></div>
+
+        <div class="history">
+            <h2>생성 기록</h2>
+            <div class="history-buttons">
+                <button class="clear-history" onclick="clearHistory()">기록 지우기</button>
+                <button class="download-csv" onclick="downloadCSV()">CSV 다운로드</button>
+            </div>
+            <div id="historyList"></div>
+        </div>
+    </div>
+
+    <script>
+        // 테마 설정
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+        }
+
+        function toggleTheme() {
+            const currentTheme = localStorage.getItem('theme') || 'light';
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            setTheme(newTheme);
+        }
+
+        // 페이지 로드 시 테마 적용
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            setTheme(savedTheme);
+            loadHistory();
+        });
+
+        // 기록 저장
+        function saveToHistory(data) {
+            let history = JSON.parse(localStorage.getItem('dialogueHistory') || '[]');
+            history.unshift({
+                input: data.input,
+                dialogue: data.dialogue,
+                emotion: data.emotion,
+                emotion_flavor: data.emotion_flavor,
+                timestamp: new Date().toISOString()
+            });
+            // 최근 10개만 저장
+            history = history.slice(0, 10);
+            localStorage.setItem('dialogueHistory', JSON.stringify(history));
+            displayHistory(history);
+        }
+
+        // 기록 표시
+        function displayHistory(history) {
+            const historyList = document.getElementById('historyList');
+            historyList.innerHTML = history.map(item => `
+                <div class="history-item">
+                    <p><strong>입력:</strong> ${item.input}</p>
+                    <p><strong>생성된 대사:</strong> ${item.dialogue}</p>
+                    <p><strong>감정:</strong> ${item.emotion}</p>
+                    ${item.emotion_flavor ? `<p><strong>감정 세부:</strong> ${item.emotion_flavor}</p>` : ''}
+                    <p><small>${new Date(item.timestamp).toLocaleString()}</small></p>
+                </div>
+            `).join('');
+        }
+
+        // 기록 로드
+        function loadHistory() {
+            const history = JSON.parse(localStorage.getItem('dialogueHistory') || '[]');
+            displayHistory(history);
+        }
+
+        // 기록 지우기
+        function clearHistory() {
+            localStorage.removeItem('dialogueHistory');
+            document.getElementById('historyList').innerHTML = '';
+        }
+
+        // 대사 생성
+        function generateDialogue() {
+            const inputText = document.getElementById('inputText').value;
+            const resultDiv = document.getElementById('result');
+            const errorDiv = document.getElementById('error');
+            const loadingDiv = document.getElementById('loading');
+
+            if (!inputText.trim()) {
+                errorDiv.textContent = '대사를 입력해주세요!';
+                return;
+            }
+
+            loadingDiv.style.display = 'block';
+            resultDiv.textContent = '';
+            errorDiv.textContent = '';
+
+            fetch('/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ input: inputText })
+            })
+            .then(response => response.json())
+            .then(data => {
+                loadingDiv.style.display = 'none';
+                if (data.error) {
+                    errorDiv.textContent = data.error;
+                } else {
+                    resultDiv.innerHTML = `
+                        <p><strong>생성된 대사:</strong> ${data.dialogue}</p>
+                        <p><strong>감정:</strong> ${data.emotion}</p>
+                        ${data.emotion_flavor ? `<p><strong>감정 세부:</strong> ${data.emotion_flavor}</p>` : ''}
+                    `;
+                    // 결과를 기록에 저장
+                    saveToHistory({
+                        input: inputText,
+                        ...data
+                    });
+                }
+            })
+            .catch(error => {
+                loadingDiv.style.display = 'none';
+                errorDiv.textContent = '오류가 발생했습니다. 다시 시도해주세요.';
+                console.error('Error:', error);
+            });
+        }
+
+        // CSV 다운로드
+        function downloadCSV() {
+            const history = JSON.parse(localStorage.getItem('dialogueHistory') || '[]');
+            if (history.length === 0) {
+                alert('다운로드할 기록이 없습니다.');
+                return;
+            }
+
+            // CSV 헤더와 데이터 생성
+            const headers = ['입력', '생성된 대사', '감정', '감정 세부', '생성 시간'];
+            const rows = history.map(item => [
+                `"${item.input.replace(/"/g, '""')}"`,
+                `"${item.dialogue.replace(/"/g, '""')}"`,
+                `"${item.emotion}"`,
+                `"${item.emotion_flavor || ''}"`,
+                `"${new Date(item.timestamp).toLocaleString()}"`
+            ]);
+
+            const csvContent = [
+                headers.join(','),
+                ...rows.map(row => row.join(','))
+            ].join('\n');
+
+            // Blob 생성 및 다운로드
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `dialogue_history_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
