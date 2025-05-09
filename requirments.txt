@@ -1,0 +1,8 @@
+transformers==4.30.2
+tqdm==4.65.0
+pandas>=2.0.0
+ollama>=0.1.0
+openai>=1.0.0
+flask==2.0.1
+ollama==0.1.6
+scikit-learn==1.0.2 
