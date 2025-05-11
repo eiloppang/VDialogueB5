@@ -16,7 +16,7 @@ Arechitecture <br>
 ![자동 대사 생성의 전체적 구조](./img/type1.png)
 
 *2. 웹 기반 대사 생성 프로토타입의 전체적 구조*
-![웹 기반 대사 생성 프로토타입의 전체적 구조](./img/type2.png)
+![웹 기반 대사 생성 프로토타입의 전체적 구조](./img/website2.png)
 
 
 Web Prototype <br>
