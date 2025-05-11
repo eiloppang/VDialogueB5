@@ -9,20 +9,6 @@ Original file is located at
 
 import re # 정규 표현식을 사용하기 위해 import (더 유연한 방법)
 
-# --- 설정 ---
-input_file_path = 'ETM_Results.txt'  # <<<< 원본 파일 경로를 여기에 입력하세요
-output_file_path = 'ETM_Output.txt' # <<<< 저장될 파일 경로를 여기에 입력하세요
-
-# 제거할 특수 문자 목록 (문자열로 정의)
-# 주의: 정규 표현식에서 특별한 의미를 가지는 문자는 앞에 \를 붙여 이스케이프해야 할 수 있습니다.
-# 여기서는 [ 가 특수 의미를 가지므로 \를 붙입니다. ' 와 , 는 그대로 사용해도 괜찮습니다.
-# 만약 단순히 문자 리스트로 처리하고 싶다면 아래 '방법 2'를 보세요.
-chars_to_remove_pattern = r"[\[',\']" # 정규표현식 패턴: '[' 또는 ',' 또는 "'" 를 의미
-
-# 파일 인코딩 설정 (파일이 UTF-8이 아닌 경우 'cp949' 등으로 변경)
-file_encoding = 'utf-8'
-# --- 설정 끝 ---
-
 print(f"입력 파일: {input_file_path}")
 print(f"출력 파일: {output_file_path}")
 print(f"제거할 문자 패턴: {chars_to_remove_pattern}")
@@ -81,7 +67,6 @@ except Exception as e:
     print(f"Error loading pipeline: {e}")
     exit()
 
-# GPU 사용 가능하면 pipeline이 자동으로 사용 시도함
 print(f"Pipeline using device: {emotion_classifier.device}")
 
 # --- 3. CSV 파일 로드 ---
@@ -252,33 +237,6 @@ else:
 
 print("\nScript finished.")
 
-"""**1. Extraversion(외향성)**
-
-*   사교성과 활동성이라는 두 가지 요소로 구성
-*   따뜻하고, 긍정적인 감정을 자주 느끼며, 에너지가 넘치고, 자기 주장이 강하며, 외향적인 성향을 지닌 것
-
-
-**2.   Agreeableness(우호성)**
-*   개인이 대인관계를 어떻게 접근하는지를 나타내는 특성입니다. 이 특성이 높은 사람들은 타인을 배려하고, 협력적이며, 갈등을 피하려는 경향
-
-
-**3. Neuroticism(신경증)**
-
-*   불안, 죄책감, 불안정함, 자기 연민 같은 부정적인 감정을 자주 경험하는 경향이 있으며, 감정 기복이 심하고 충동적인 행동
-
-
-**4. Conscientiousness(성실성)**
-
-*   계획적이고 조직적인 태도를 가지며, 목표 지향적이고 즉각적인 만족을 미루며, 사회적 규범과 규칙을 잘 따르는 성향
-
-
-**5. Openness(개방성)**
-
-*   지적 호기심이 많고 상상력이 풍부한 특징
-
-# 개방성
-['']
-"""
 
 import pandas as pd
 import ast
